@@ -10,9 +10,13 @@ alyze the difficulties of transforming the on-device model to its debuggable ver
 
 The dependency can be found in `environment.yml`. To create the conda environment:
 
-```conda env create -f environment.yml```
+```
+conda env create -f environment.yml
+```
 
-```conda activate reom```
+```
+conda activate reom
+```
 
 ## Run
 
@@ -22,21 +26,29 @@ Note that the `acc_mode=True` option refers the REOM disables some pruning rules
 
 To evaluate the scaled transformation error:
 
-```python tflite2pytorch.py --all --save_onnx --acc_mode```
+```
+python tflite2pytorch.py --all --save_onnx --acc_mode
+```
 
 To evaluate the accuracy and the attack success of the converted model:
 
 
-```bash attack.sh```
+```
+bash attack.sh
+```
 
 The above command will run the evaluation for all models. To evaluate a specific source model, you can first convert the TFLite model using our method (without the --acc_mode):
 
 
-```python tflite2pytorch.py --model_name=bird --save_onnx```
+```
+python tflite2pytorch.py --model_name=bird --save_onnx
+```
 
 Then, you can evaluate the robustness of the source model using the reverse-engineered model:
 
 
-```python attack.py --cuda --adv=BIM --model=bird --eps=0.01 --nb_iter=400 --eps_iter=0.0001 | tee -a attack.txt```
+```
+python attack.py --cuda --adv=BIM --model=bird --eps=0.01 --nb_iter=400 --eps_iter=0.0001 | tee -a attack.txt
+```
 
 Note that if you want to evaluate the performance in the white-box setting, you can add the '--white-box' config to enable the white-box evaluation. For testing the model using the black-box setting, we recommend using Foolbox (https://github.com/bethgelab/foolbox) to apply the black-box algorithms to the source models. 

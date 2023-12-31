@@ -1,0 +1,11 @@
+Bird, Plant, Insect: https://github.com/visipedia/inat_comp/tree/master/2017
+
+Skin:  https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/DBW86T
+
+Object(imagenet): https://www.image-net.org/download.php
+
+Plant disease: https://data.mendeley.com/datasets/tywbtsjrjv/1
+
+american-sign-language: https://www.kaggle.com/datasets/grassknoted/asl-alphabet
+
+cassava_disease: https://www.kaggle.com/competitions/cassava-disease/data

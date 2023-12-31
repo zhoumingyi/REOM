@@ -1,0 +1,291 @@
+import warnings
+import numpy as np
+import onnx
+from onnx import numpy_helper
+import torch
+
+# from onnx2pytorch.utils import (
+#     extract_padding_params_for_conv_layer,
+#     extract_padding_params,
+# )
+
+TENSOR_PROTO_MAPPING = dict([i[::-1] for i in onnx.TensorProto.DataType.items()])
+
+AttributeType = dict(
+    UNDEFINED=0,
+    FLOAT=1,
+    INT=2,
+    STRING=3,
+    TENSOR=4,
+    GRAPH=5,
+    SPARSE_TENSOR=11,
+    FLOATS=6,
+    INTS=7,
+    STRINGS=8,
+    TENSORS=9,
+    GRAPHS=10,
+    SPARSE_TENSORS=12,
+)
+
+
+def is_symmetric(params):
+    """
+    Check if parameters are symmetric, all values [2,2,2,2].
+    Then we can use only [2,2].
+    """
+    # pads = np.array(params).reshape(-1, len(params) // 2).T
+    # index = [(i-1) for i in range(int(pads.size) // 2, 0, -1)]
+    # params = tuple(pads[index].flatten())
+
+    assert len(params) // 2 == len(params) / 2, "Non even number of parameters."
+    idx = len(params) // 2
+    for i in range(0, idx):
+        if params[i] != params[idx + i]:
+            return False
+    return True
+
+
+def extract_padding_params(params):
+    """Extract padding parameters for Pad layers."""
+    pad_dim = len(params) // 2
+    if pad_dim == 0:
+        return []
+    # pads = np.array(params).reshape(-1, pad_dim).T.flatten()  # .tolist()
+    # ---------------------------------------------------------------
+    # My attributes
+    # print("pre", params)
+    pads = np.array(params).reshape(-1, pad_dim).T
+    index = [(i-1) for i in range(int(pads.size) // 2, 0, -1)]
+    pads = pads[index].flatten()
+    # print("aft", tuple(pads))
+    # ---------------------------------------------------------------
+
+    # Some padding modes do not support padding in batch and channel dimension.
+    # If batch and channel dimension have no padding, discard.
+    if (pads[:4] == 0).all():
+        pads = pads[4:]
+    pads = pads.tolist()
+    # Reverse, because for pytorch first two numbers correspond to last dimension, etc.
+    pads.reverse()
+    # pads = [1, 0, 1, 0]
+    # print(pads)
+    return pads
+
+
+def extract_padding_params_for_conv_layer(params):
+    """
+    Padding params in onnx are different than in pytorch. That is why we need to
+    check if they are symmetric and cut half or return a padding layer.
+    """
+    if is_symmetric(params):
+        # print("is_symmetric:", params[len(params) // 2 * -1 :])
+        # pads = np.array(params).reshape(-1, len(params) // 2).T
+        # index = [(i-1) for i in range(int(pads.size) // 2, 0, -1)]
+        # params = tuple(pads[index].flatten())
+        return params[: len(params) // 2]
+    else:
+        pad_dim = len(params) // 2
+        pad_layer = getattr(torch.nn, "ConstantPad{}d".format(pad_dim))
+        pads = extract_padding_params(params)[::-1]
+        return pad_layer(pads, value=0)
+
+
+def extract_attr_values(attr):
+    """Extract onnx attribute values."""
+    if attr.type == AttributeType["INT"]:
+        value = attr.i
+    elif attr.type == AttributeType["FLOAT"]:
+        value = attr.f
+    elif attr.type == AttributeType["INTS"]:
+        value = tuple(attr.ints)
+    elif attr.type == AttributeType["FLOATS"]:
+        value = tuple(attr.floats)
+    elif attr.type == AttributeType["TENSOR"]:
+        value = numpy_helper.to_array(attr.t)
+    elif attr.type == AttributeType["STRING"]:
+        value = attr.s.decode()
+    elif attr.type == AttributeType["GRAPH"]:
+        value = attr.g
+    else:
+        raise NotImplementedError(
+            "Extraction of attribute type {} not implemented.".format(attr.type)
+        )
+    return value
+
+
+def extract_attributes(node):
+    """Extract onnx attributes. Map onnx feature naming to pytorch."""
+    kwargs = {}
+    for attr in node.attribute:
+        if attr.name == "activation_alpha":
+            kwargs["activation_alpha"] = extract_attr_values(attr)
+        elif attr.name == "activation_beta":
+            kwargs["activation_beta"] = extract_attr_values(attr)
+        elif attr.name == "activations":
+            kwargs["activations"] = extract_attr_values(attr)
+        elif attr.name == "alpha":
+            if node.op_type == "LeakyRelu":
+                kwargs["negative_slope"] = extract_attr_values(attr)
+            elif node.op_type in ("Elu", "ThresholdedRelu", "LocalResponseNorm"):
+                kwargs["alpha"] = extract_attr_values(attr)
+            else:
+                kwargs["weight_multiplier"] = extract_attr_values(attr)
+        elif attr.name == "auto_pad":
+            value = extract_attr_values(attr)
+            if value == "NOTSET":
+                pass
+# --------------------------------------------
+# my code
+            elif value == "SAME_UPPER":
+                kwargs["padding"] = "same"
+# --------------------------------------------
+            else:
+                raise NotImplementedError(
+                    "auto_pad={} functionality not implemented.".format(value)
+                )
+        elif attr.name == "axis" and node.op_type == "Flatten":
+            kwargs["start_dim"] = extract_attr_values(attr)
+        elif attr.name == "axis" or attr.name == "axes":
+            v = extract_attr_values(attr)
+            if isinstance(v, (tuple, list)) and len(v) == 1:
+                kwargs["dim"] = v[0]
+            else:
+                kwargs["dim"] = v
+        elif attr.name == "beta":
+            if node.op_type in ("LocalResponseNorm"):
+                kwargs["beta"] = extract_attr_values(attr)
+            else:
+                kwargs["bias_multiplier"] = extract_attr_values(attr)
+        elif attr.name == "body":
+            kwargs["body"] = extract_attr_values(attr)
+        elif attr.name == "ceil_mode":
+            kwargs["ceil_mode"] = bool(extract_attr_values(attr))
+        elif attr.name == "center_point_box":
+            kwargs["center_point_box"] = extract_attr_values(attr)
+        elif attr.name == "clip":
+            kwargs["clip"] = extract_attr_values(attr)
+        elif attr.name == "coordinate_transformation_mode":
+            arg = extract_attr_values(attr)
+            if arg == "align_corners":
+                kwargs["align_corners"] = True
+            else:
+                warnings.warn(
+                    "Pytorch's interpolate uses no coordinate_transformation_mode={}. "
+                    "Result might differ.".format(arg)
+                )
+        elif attr.name == "dilations":
+            kwargs["dilation"] = extract_attr_values(attr)
+        elif attr.name == "direction":
+            kwargs["direction"] = extract_attr_values(attr)
+        elif attr.name == "ends":
+            kwargs["ends"] = extract_attr_values(attr)
+        elif attr.name == "epsilon":
+            kwargs["eps"] = extract_attr_values(attr)
+        elif attr.name == "group":
+            kwargs["groups"] = extract_attr_values(attr)
+        elif attr.name == "hidden_size":
+            kwargs["hidden_size"] = extract_attr_values(attr)
+        elif attr.name == "input_forget":
+            kwargs["input_forget"] = extract_attr_values(attr)
+        elif attr.name == "keepdims":
+            kwargs["keepdim"] = bool(extract_attr_values(attr))
+        elif attr.name == "kernel_shape":
+            kwargs["kernel_size"] = extract_attr_values(attr)
+        elif attr.name == "largest":
+            kwargs["largest"] = extract_attr_values(attr)
+        elif attr.name == "layout":
+            kwargs["layout"] = extract_attr_values(attr)
+        elif attr.name == "max":
+            kwargs["max"] = extract_attr_values(attr)
+        elif attr.name == "min":
+            kwargs["min"] = extract_attr_values(attr)
+        elif attr.name == "mode":
+            kwargs["mode"] = extract_attr_values(attr)
+        elif attr.name == "momentum":
+            kwargs["momentum"] = extract_attr_values(attr)
+        elif attr.name == "noop_with_empty_axes":
+            kwargs["noop_with_empty_axes"] = extract_attr_values(attr)
+        elif attr.name == "output_shape" and node.op_type == "ConvTranspose":
+            raise NotImplementedError(
+                "ConvTranspose with dynamic padding not implemented."
+            )
+        elif attr.name == "pads":
+            params = extract_attr_values(attr)
+            if node.op_type == "Pad":
+                kwargs["padding"] = extract_padding_params(params)
+            else:
+                # Works for Conv, MaxPooling and other layers from convert_layer func
+                kwargs["padding"] = extract_padding_params_for_conv_layer(params)
+                # print(kwargs["padding"])
+        elif attr.name == "perm":
+            kwargs["dims"] = extract_attr_values(attr)
+        elif attr.name == "repeats":
+            kwargs["repeats"] = extract_attr_values(attr)
+        elif attr.name == "sorted":
+            kwargs["sorted"] = extract_attr_values(attr)
+        elif attr.name == "sparse_value":
+            kwargs["constant"] = extract_attr_values(attr)
+        elif attr.name == "spatial":
+            kwargs["spatial"] = extract_attr_values(attr)  # Batch norm parameter
+        elif attr.name == "split":
+            kwargs["split_size_or_sections"] = extract_attr_values(attr)
+        elif attr.name == "strides":
+            kwargs["stride"] = extract_attr_values(attr)
+        elif attr.name == "starts":
+            kwargs["starts"] = extract_attr_values(attr)
+        elif attr.name == "to":
+            kwargs["dtype"] = TENSOR_PROTO_MAPPING[extract_attr_values(attr)].lower()
+        elif attr.name == "transB":
+            kwargs["transpose_weight"] = not extract_attr_values(attr)
+        elif attr.name == "transA":
+            kwargs["transpose_activation"] = bool(extract_attr_values(attr))
+        elif attr.name == "value":
+            kwargs["constant"] = extract_attr_values(attr)
+        elif attr.name == "value_float":
+            kwargs["constant"] = extract_attr_values(attr)
+        elif attr.name == "value_floats":
+            kwargs["constant"] = extract_attr_values(attr)
+        elif attr.name == "value_int":
+            kwargs["constant"] = extract_attr_values(attr)
+        elif attr.name == "value_ints":
+            kwargs["constant"] = extract_attr_values(attr)
+        elif attr.name == "value_string":
+            kwargs["constant"] = extract_attr_values(attr)
+        elif attr.name == "value_strings":
+            kwargs["constant"] = extract_attr_values(attr)
+        elif node.op_type == "Resize":
+            # These parameters are not used, warn in Resize operator
+            kwargs[attr.name] = extract_attr_values(attr)
+# ---------------------------------------------------------------
+# My attributes
+
+        elif attr.name == "blocksize":
+            kwargs["blocksize"] = extract_attr_values(attr)
+        elif attr.name == "equation":
+            kwargs["equation"] = extract_attr_values(attr)
+        elif attr.name == "N":
+            continue
+        elif attr.name == "T":
+            continue
+        elif attr.name == "align_corners":
+            kwargs["align_corners"] = bool(extract_attr_values(attr))
+        elif attr.name == "half_pixel_centers":
+            kwargs["half_pixel_centers"] = bool(extract_attr_values(attr))
+        elif attr.name == "size":
+            kwargs["size"] = extract_attr_values(attr)
+        elif attr.name == "bias":
+            kwargs["bias"] = extract_attr_values(attr)
+        elif attr.name == "ratio":
+            # print('find rotia')
+            kwargs["p"] = extract_attr_values(attr)
+        # elif attr.name == "auto_pad=SAME_UPPER":
+        #     if extract_attr_values(attr) == "SAME_UPPER" or extract_attr_values(attr) == "SAME_LOWER":
+        #     kwargs["padding"] = "same"
+        # elif attr.name == "Taxis":
+        #     kwargs["axis"] = extract_attr_values(attr)
+# ---------------------------------------------------------------
+        else:
+            raise NotImplementedError(
+                "Extraction of attribute {} not implemented.".format(attr.name)
+            )
+    return kwargs

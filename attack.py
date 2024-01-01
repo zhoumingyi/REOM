@@ -47,14 +47,13 @@ parser.add_argument('--white_box', action='store_true', help='white-box attack')
 parser.add_argument('--batch_size', type=int, default=64, help='Batch_size')
 
 opt = parser.parse_args()
-print(opt)
+# print(opt)
 
 
 cudnn.benchmark = False
 
 if torch.cuda.is_available() and not opt.cuda:
-    print("WARNING: You have a CUDA device, so you should probably run with \
-         --cuda")
+    print("WARNING: You have a CUDA device, so you can probably run with --cuda")
     print("Set device as cuda:0")
     device = torch.device("cuda:0")
 else:
@@ -299,4 +298,6 @@ elif opt.model == 'imagenet':
     attack_net = torch.load('./pytorch_model/imagenet.pth').to(device).eval()
 
 test_acc(attack_net, target_net=target_net, dtype=dtype)
+print('Attacking algorithm: %s' % opt.adv)
 test_adver(attack_net, target_net, opt.adv, **kwargs)
+print('------------------------------------------------------')

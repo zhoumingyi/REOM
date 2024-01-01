@@ -27,7 +27,7 @@ parser.add_argument('--all', action='store_true')
 parser.add_argument('--save_onnx', action='store_true')
 parser.add_argument('--acc_mode', action='store_true')       # When enable the acc_mode, some rule of pruning module will be skipped.
 opt = parser.parse_args()
-print(opt)
+# print(opt)
 
 def onnx_modifier(onnx_model, acc_mode=False, tflite_model=None):
     pruning(onnx_model, acc_mode=acc_mode)
@@ -53,10 +53,12 @@ else:
     tflite_path = './tflite_model/'
     filelist = os.listdir(tflite_path)
     # print(filelist)
+    model_id = 0
     for i in range(len(filelist)):    # 153, 214
         if not filelist[i].endswith('.tflite'):
             continue
-        print(i, "_", "model name:", filelist[i])
+        print(model_id, "model name:", filelist[i])
+        model_id += 1
         model_path = tflite_path+filelist[i]
         interpreter = tf.lite.Interpreter(model_path=model_path)
         if opt.save_onnx == True:
@@ -70,25 +72,26 @@ else:
         elif input_details[0]['dtype'] == numpy.float32:
             inputs.append(numpy.expand_dims(torch.load(os.path.join('./dataset/',os.path.splitext(filelist[i])[0], 'inputs.pt')).permute(0,2,3,1).numpy()[0], axis=0))
             data_scale = 1.0
-        print(inputs[0].max(), inputs[0].min())
+        # print(inputs[0].max(), inputs[0].min())
         tflite_out, output_details = test_tflite_results(model_path, inputs, output_id=0, inter_out=opt.inner_out)
         _, predicted_att = torch.max(torch.from_numpy(tflite_out), 1)
-        print("tflite_out:", predicted_att)
+        # print("tflite_out:", predicted_att)
         onnx_model = onnx.load('./out_model/'+os.path.splitext(filelist[i])[0]+'.onnx')
         onnx_modifier(onnx_model, acc_mode=opt.acc_mode, tflite_model=model_path)
         onnx.save(onnx_model, './out_model/'+os.path.splitext(filelist[i])[0]+'_modified.onnx')
         pytorch_model = ConvertModel(onnx_model).eval()
         output_pt = pytorch_model(torch.from_numpy(inputs[0]).to(torch.float32)/data_scale)
         _, predicted_att = torch.max(output_pt.data, 1)
-        print('Pytorch output:', predicted_att)
+        # print('Pytorch output:', predicted_att)
         if torch.is_tensor(output_pt):
             error = np.absolute(output_pt.detach().squeeze().to(torch.float).numpy()-tflite_out.squeeze())
         else:
             error = np.absolute(output_pt[output_details[0]['name']].detach().squeeze().to(torch.float).numpy()-tflite_out.squeeze())
         if tflite_out.dtype == 'uint8':
-            print("data_type is uint8")
+            # print("data_type is uint8")
             scale = 256.0
         else:
             scale = (tflite_out.max() - tflite_out.min() + 1.0e-08)
         print('final_men_error_normlized:', error.mean() / scale)
         print('final_max_error_normlized:', error.max() / scale)
+        print('----------------------------------------------------')

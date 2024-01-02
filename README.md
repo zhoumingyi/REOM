@@ -8,47 +8,78 @@ alyze the difficulties of transforming the on-device model to its debuggable ver
 
 ## Setup
 
-The dependency can be found in `environment.yml`. To create the conda environment:
+We provide two ways to build the environment to test our proposed tool. If you want to build the environment from scratch, it requires you to have a workstation with Ubuntu OS. In addition, you need to install Git and Anaconda. For other users, we recommend following the guidelines in the option 1 to build the environment using Docker. However, the provided docker image does not support the GPU acceleration.
+
+### Option 1: Build The Environment from Scratch
+
+(1) First, you need to download the whole code and code from the GitHub using the command:
+
+```
+git clone https://github.com/zhoumingyi/REOM.git
+```
+
+(2) The dependency can be found in `environment.yml`. To create the conda environment:
+
 
 ```
 conda env create -f environment.yml
 ```
 
+(3) Then activate the created conda environment
+
 ```
 conda activate reom
 ```
 
+### Option 2: Build The Environment using Docker
+
+(1) To build the environment using Docker, you need to first download the Docker image:
+
+```
+docker pull zhoumingyigege/reom:latest
+```
+
+(2) Then, enter the environment:
+
+```
+docker run -i -t zhoumingyigege/reom:latest /bin/bash
+```
+
+(3) Next, enter the project and activate the conda environment:
+
+```
+cd reom/
+conda activate reom
+```
+
+Next, you can reproduce the major results (i.e., transformation error, accuracy, attack success rate) of our paper.
+
 ## Run
 
-We randomly sampled 64 images for testing the accuracy and attack success rate. The sampled data can be found in the 'dataset/' folder.
-
-Note that the `acc_mode=True` option refers the REOM disables some pruning rules that transform the quantized output to float output to ensure the differentiability (debuggability). If we keep such pruning rules, the output scale will be changed so that we cannot compare the transformation error between the converted model and the source model.
-
-To evaluate the scaled transformation error:
+(1) To evaluate the scaled transformation error:
 
 ```
-python tflite2pytorch.py --all --save_onnx --acc_mode
+python tflite2pytorch.py --all --save_onnx --acc_mode  | tee -a error.txt
 ```
 
-To evaluate the accuracy and the attack success of the converted model:
+It will convert TFLite models to PyTorch models that are saved in the 'pytorch_model' folder. It will also compute the scaled max error and min error which will be logged in the 'error.txt' file. The results should be similar to the results shown in Figure 7 of our paper. Note that the 'acc_mode=True' option refers to the converted model will have the same output type and scale as the source model. We need to set it as True for comparing the transformation error between the converted model and the source model. However, for the next step (i.e., evaluating the accuracy and attack success rate), the output type should be changed to float if the source model uses UInt8 computation to guarantee the debuggability of the converted model.
 
+(2) To evaluate the accuracy (shown in Table 5) and the attack success (shown in Table 6) of the converted model:
 
 ```
 bash attack.sh
 ```
 
-The above command will run the evaluation for all models. To evaluate a specific source model, you can first convert the TFLite model using our method (without the --acc_mode):
+It will log the accuracy and attack success rate in the 'acc_asr.txt' file. The results should be similar to Table 5 and Table 6 of our paper. However, it is acceptable when the results have a small difference from the original results because we only provide 64 samples to test our method in our code repository (the original datasets contain hundreds of GB data). The sampled data can be found in the 'dataset/'. We also provide a list (https://github.com/zhoumingyi/reom/blob/main/dataset_list.txt) that contains the link to complete datasets.
 
-
-```
-python tflite2pytorch.py --model_name=bird --save_onnx
-```
-
-Then, you can evaluate the robustness of the source model using the reverse-engineered model:
-
+**(Optional)** The above command of step (2) will run the evaluation for all models. To evaluate our method on a specific model, you can first convert the TFLite model using our method (without the --acc_mode):
 
 ```
-python attack.py --cuda --adv=BIM --model=bird --eps=0.01 --nb_iter=400 --eps_iter=0.0001 | tee -a attack.txt
+python tflite2pytorch.py --model_name=fruit --save_onnx
 ```
 
-Note that if you want to evaluate the performance in the white-box setting, you can add the '--white-box' config to enable the white-box evaluation. For testing the model using the black-box setting, we recommend using Foolbox (https://github.com/bethgelab/foolbox) to apply the black-box algorithms to the source models. 
+**(Optional)** Then, you can evaluate the robustness of the source model using the reverse-engineered model:
+
+```
+python attack.py --cuda --adv=BIM --model=fruit 
+```

@@ -54,7 +54,7 @@ conda activate reom
 
 ## Run
 
-### Reproduce the major results (i.e., transformation error, accuracy, attack success rate) of our paper:
+### To reproduce the major results (i.e., transformation error, accuracy, attack success rate) of our paper:
 
 (1) To evaluate the scaled transformation error:
 
@@ -72,7 +72,7 @@ bash attack.sh
 
 It will log the accuracy and attack success rate in the 'acc_asr.txt' file. The results should be similar to Table 5 and Table 6 of our paper. However, it is acceptable when the results have a small difference from the original results because we only provide 64 samples to test our method in our code repository (the original datasets contain hundreds of GB data). The sampled data can be found in the 'dataset/'. We also provide a list (https://github.com/zhoumingyi/reom/blob/main/dataset_list.txt) that contains the link to complete datasets.
 
-### To evaluate the REOM-based attack on your own model
+### To evaluate the REOM-based attack on your own model:
 
 (1) Suppose you have a Fruit Recognition model, you can first cp your model to the 'tflite\_model' folder and convert the TFLite model to PyTorch model using our method (without the --acc_mode):
 

@@ -18,6 +18,9 @@ We provide two ways to build the environment to test our proposed tool. If you w
 git clone https://github.com/zhoumingyi/REOM.git
 ```
 
+If you have some Internet connection issues using GitHub, please try to download from here:
+https://archive.softwareheritage.org/browse/origin/directory/?origin_url=https://github.com/zhoumingyi/REOM
+
 (2) The dependency can be found in `environment.yml`. To create the conda environment:
 
 
@@ -33,10 +36,10 @@ conda activate reom
 
 ### Option 2: Build The Environment using Docker
 
-(1) To build the environment using Docker, you need to first download the Docker image:
+(1) To build the environment using Docker, you need to first produce the Docker image:
 
 ```
-docker pull zhoumingyigege/reom:latest
+cat reom.tar.* >reom.tar
 ```
 
 (2) Then, enter the environment:

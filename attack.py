@@ -1,11 +1,11 @@
 from __future__ import print_function
 import argparse
 import os
-import gc
-import sys
-import onnx
-import time
-import random
+# import gc
+# import sys
+# import onnx
+# import time
+# import random
 from glob import glob
 from multiprocessing import cpu_count
 import numpy as np
@@ -15,7 +15,7 @@ os.environ["GIT_PYTHON_REFRESH"] = "quiet"
 import foolbox as fb
 from foolbox.criteria import Misclassification, TargetedMisclassification
 import torch
-import torchvision
+# import torchvision
 import torch.nn as nn
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn

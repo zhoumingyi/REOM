@@ -39,7 +39,7 @@ conda activate reom
 (1) To build the environment using Docker, you need to first download the Docker image:
 
 ```
-cat reom.tar.* >reom.tar
+docker load -i reom.tar
 ```
 
 or you can download it using Docker Hub:

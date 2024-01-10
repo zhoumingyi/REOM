@@ -12,7 +12,7 @@ We provide two ways to build the environment to test our proposed tool. If you w
 
 ### Option 1: Build The Environment from Scratch
 
-(1) First, you need to download the whole code and code from the GitHub using the command:
+(1) You can download the whole code and code from the GitHub:
 
 ```
 git clone https://github.com/zhoumingyi/REOM.git
@@ -40,6 +40,12 @@ conda activate reom
 
 ```
 cat reom.tar.* >reom.tar
+```
+
+Note that if you download the code using the Software Heritage archival repository. You need to pull the docker image from docker hub as the Software Heritage archival do not support large files:
+
+```
+docker pull zhoumingyigege/reom:latest
 ```
 
 (2) Then, enter the environment:

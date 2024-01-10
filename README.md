@@ -8,7 +8,7 @@ alyze the difficulties of transforming the on-device model to its debuggable ver
 
 ## Setup
 
-We provide two ways to build the environment to test our proposed tool. If you want to build the environment from scratch, it requires you to have a workstation with Ubuntu OS. In addition, you need to install git-lfs (https://github.com/git-lfs/git-lfs) and Anaconda. For other users, we recommend following the guidelines in the option 1 to build the environment using Docker. However, the provided docker image does not support the GPU acceleration.
+We provide two ways to build the environment to test our proposed tool. If you want to build the environment from scratch, it requires you to have a workstation with Ubuntu OS. In addition, you need to install Git and Anaconda. For other users, we recommend following the guidelines in the option 1 to build the environment using Docker. However, the provided docker image does not support the GPU acceleration.
 
 ### Option 1: Build The Environment from Scratch
 
@@ -36,13 +36,13 @@ conda activate reom
 
 ### Option 2: Build The Environment using Docker
 
-(1) To build the environment using Docker, you need to first produce the Docker image:
+(1) To build the environment using Docker, you need to first download the Docker image:
 
 ```
 cat reom.tar.* >reom.tar
 ```
 
-Note that if you download the code using the Software Heritage archival repository. You need to pull the docker image from docker hub as the Software Heritage archival do not support large files:
+or you can download it using Docker Hub:
 
 ```
 docker pull zhoumingyigege/reom:latest

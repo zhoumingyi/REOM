@@ -8,7 +8,7 @@ alyze the difficulties of transforming the on-device model to its debuggable ver
 
 ## Setup
 
-We provide two ways to build the environment to test our proposed tool. If you want to build the environment from scratch, it requires you to have a workstation with Ubuntu OS. In addition, you need to install Git and Anaconda. For other users, we recommend following the guidelines in the option 1 to build the environment using Docker. However, the provided docker image does not support the GPU acceleration.
+We provide two ways to build the environment to test our proposed tool. If you want to build the environment from scratch, it requires you to have a workstation with Ubuntu OS. In addition, you need to install Git and Anaconda (>Python3.9). For other users, we recommend following the guidelines in the option 1 to build the environment using Docker. However, the provided docker image does not support the GPU acceleration.
 
 ### Option 1: Build The Environment from Scratch
 

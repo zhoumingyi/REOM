@@ -100,5 +100,5 @@ python tflite2pytorch.py --model_name=fruit --save_onnx
 (2) Then, you can evaluate the robustness of the source model using the reverse-engineered model:
 
 ```
-python attack.py --cuda --adv=BIM --model=fruit 
+python attack.py --adv=BIM --model=fruit --eps=0.01 --nb_iter=400 --eps_iter=0.0001 | tee -a acc_asr.txt
 ```

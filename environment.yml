@@ -11,11 +11,11 @@ dependencies:
   - pytorch=1.12.1=py3.9_cuda11.3_cudnn8.3.2_0
   - scikit-learn=1.0.2=py39h51133e4_1
   - scipy=1.7.3=py39hc147768_0
+  - tensorflow
   - pip:
     - foolbox==3.3.3
     - onnx==1.11.0
     - onnx2pytorch==0.4.1
     - onnxruntime==1.11.1
     - protobuf==3.20.1
-    - tensorflow==2.8.0
     - tf2onnx==1.10.1

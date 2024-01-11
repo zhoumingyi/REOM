@@ -10,8 +10,8 @@ from glob import glob
 from multiprocessing import cpu_count
 import numpy as np
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-import tensorflow as tf
-os.environ["GIT_PYTHON_REFRESH"] = "quiet"
+# import tensorflow as tf
+# os.environ["GIT_PYTHON_REFRESH"] = "quiet"
 import foolbox as fb
 from foolbox.criteria import Misclassification, TargetedMisclassification
 import torch

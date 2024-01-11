@@ -3,9 +3,9 @@ import argparse
 import torch
 import numpy as np
 import onnx
-import onnxruntime as ort
+# import onnxruntime as ort
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-import tensorflow as tf
+# import tensorflow as tf
 from onnx_pytorch.onnx_pytorch import ConvertModel
 from modifier.pruning import pruning
 from modifier.translation import translation

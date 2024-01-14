@@ -131,7 +131,7 @@ def test_adver(net, tar_net, attack, dtype='uint8',white_box=False, clip_min=0.0
     inputs_all = torch.load(os.path.join('./dataset/',opt.model, 'inputs.pt'))
     labels_all = torch.load(os.path.join('./dataset/',opt.model, 'labels.pt'))
     inputs_all = inputs_all.to(device)
-    labels_all = labels_all.to(device)
+    labels_all = labels_all.to(device).long()
 
     for i in range(0, inputs_all.size(0), opt.batch_size):
         inputs = inputs_all[i:i+opt.batch_size]

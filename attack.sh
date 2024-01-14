@@ -11,12 +11,12 @@ python attack.py  --adv=PGD --model=fruit --eps=0.1 --nb_iter=400 --eps_iter=0.0
 python attack.py  --adv=BIM --model=fruit --eps=1.0 --nb_iter=400 --eps_iter=0.04 | tee -a acc_asr.txt
 python attack.py  --adv=PGD --model=fruit --eps=1.0 --nb_iter=400 --eps_iter=0.04 | tee -a acc_asr.txt
 
-python attack.py  --adv=BIM --model=fruit --eps=0.01 --nb_iter=400 --eps_iter=0.0001 --target | tee -a acc_asr.txt
-python attack.py  --adv=PGD --model=fruit --eps=0.01 --nb_iter=400 --eps_iter=0.0001 --target | tee -a acc_asr.txt
-python attack.py  --adv=BIM --model=fruit --eps=0.1 --nb_iter=400 --eps_iter=0.001 --target | tee -a acc_asr.txt
-python attack.py  --adv=PGD --model=fruit --eps=0.1 --nb_iter=400 --eps_iter=0.001 --target | tee -a acc_asr.txt
-python attack.py  --adv=BIM --model=fruit --eps=1.0 --nb_iter=400 --eps_iter=0.04 --target | tee -a acc_asr.txt
-python attack.py  --adv=PGD --model=fruit --eps=1.0 --nb_iter=400 --eps_iter=0.04 --target | tee -a acc_asr.txt
+python attack.py  --adv=BIM --model=fruit --eps=0.01 --nb_iter=600 --eps_iter=0.0005 --target | tee -a acc_asr.txt
+python attack.py  --adv=PGD --model=fruit --eps=0.01 --nb_iter=600 --eps_iter=0.0005 --target | tee -a acc_asr.txt
+python attack.py  --adv=BIM --model=fruit --eps=0.1 --nb_iter=600 --eps_iter=0.001 --target | tee -a acc_asr.txt
+python attack.py  --adv=PGD --model=fruit --eps=0.1 --nb_iter=600 --eps_iter=0.001 --target | tee -a acc_asr.txt
+python attack.py  --adv=BIM --model=fruit --eps=1.0 --nb_iter=600 --eps_iter=0.06 --target | tee -a acc_asr.txt
+python attack.py  --adv=PGD --model=fruit --eps=1.0 --nb_iter=600 --eps_iter=0.06 --target | tee -a acc_asr.txt
 
 
 echo "************************************************************" | tee -a acc_asr.txt

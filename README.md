@@ -89,7 +89,7 @@ bash attack.sh
 
 It will log the accuracy and attack success rate in the 'acc_asr.txt' file. The results should be similar to Table 5 and Table 6 of our paper. However, it is acceptable when the results have a small difference from the original results because we only provide 64 samples to test our method in our code repository (the original datasets contain hundreds of GB data). The sampled data can be found in the 'dataset/'. We also provide a list (https://github.com/zhoumingyi/reom/blob/main/dataset_list.txt) that contains the link to complete datasets.
 
-(Optional) If you want to get more accurate results, we also provide 640 samples to test our method. You can download the datasets and unpack the file: 
+**(Optional)** If you want to get more accurate results, we also provide 640 samples to test our method. You can download the datasets and unpack the file: 
 
 ```
 bash DatasetDownload.sh

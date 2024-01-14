@@ -78,20 +78,25 @@ def test_acc(attack_net, target_net, dtype='uint8'):
         elif dtype == 'float32':
             max_pixel = 1.0
 
-        inputs = torch.load(os.path.join('./dataset/',opt.model, 'inputs.pt'))
-        labels = torch.load(os.path.join('./dataset/',opt.model, 'labels.pt'))
-        inputs = inputs.to(device)
-        labels = labels.to(device)
-        outputs_att = attack_net(inputs)
+        inputs_all = torch.load(os.path.join('./dataset/',opt.model, 'inputs.pt'))
+        labels_all = torch.load(os.path.join('./dataset/',opt.model, 'labels.pt'))
+        inputs_all = inputs_all.to(device)
+        labels_all = labels_all.to(device)
 
-        _, predicted_att = torch.max(outputs_att.data, 1)
-        total += labels.size(0)
+        for i in range(0, inputs_all.size(0), opt.batch_size):
+            inputs = inputs_all[i:i+opt.batch_size]
+            labels = labels_all[i:i+opt.batch_size]
 
-        correct_att += (predicted_att.to(device) == labels).sum()
-        if target_net is not None:
-            outputs_tar = target_net(inputs * max_pixel)
-            _, predicted_tar = torch.max(outputs_tar.data, 1)
-            correct_tar += (predicted_tar.to(device) == labels).sum()
+            outputs_att = attack_net(inputs)
+
+            _, predicted_att = torch.max(outputs_att.data, 1)
+            total += labels.size(0)
+
+            correct_att += (predicted_att.to(device) == labels).sum()
+            if target_net is not None:
+                outputs_tar = target_net(inputs * max_pixel)
+                _, predicted_tar = torch.max(outputs_tar.data, 1)
+                correct_tar += (predicted_tar.to(device) == labels).sum()
 
         print('Accuracy of the reverse engineered model produced by REOM: %.2f %%' %
                 (100. * correct_att.float() / total))
@@ -123,61 +128,66 @@ def test_adver(net, tar_net, attack, dtype='uint8',white_box=False, clip_min=0.0
     att_num = 0.
     acc_num = 0.
 
-    inputs = torch.load(os.path.join('./dataset/',opt.model, 'inputs.pt'))
-    labels = torch.load(os.path.join('./dataset/',opt.model, 'labels.pt'))
-    inputs = inputs.to(device)
-    labels = labels.to(torch.int64).to(device)
-    with torch.no_grad():
-        if not white_box:
-            outputs = tar_net(inputs * max_pixel)
+    inputs_all = torch.load(os.path.join('./dataset/',opt.model, 'inputs.pt'))
+    labels_all = torch.load(os.path.join('./dataset/',opt.model, 'labels.pt'))
+    inputs_all = inputs_all.to(device)
+    labels_all = labels_all.to(device)
+
+    for i in range(0, inputs_all.size(0), opt.batch_size):
+        inputs = inputs_all[i:i+opt.batch_size]
+        labels = labels_all[i:i+opt.batch_size]
+
+        with torch.no_grad():
+            if not white_box:
+                outputs = tar_net(inputs * max_pixel)
+            else:
+                outputs = net(inputs)
+        nb_class = outputs.size(1)
+        _, predicted = torch.max(outputs.data, 1)
+        if target:
+            labels = torch.randint(0, nb_class, (inputs.size(0),)).to(torch.int64).to(device)
+
+            ones = torch.ones_like(predicted).to(device)
+            zeros = torch.zeros_like(predicted).to(device)
+            acc_sign = torch.where(predicted.to(device) == labels, zeros, ones)
+            acc_num += acc_sign.sum().float()
+            _, adv_inputs_ori, is_adv = attack_fb(fmodel, inputs, TargetedMisclassification(labels), epsilons=opt.eps)
+            L2_distance = (adv_inputs_ori - inputs).squeeze()
+            L2_distance = (torch.linalg.norm(torch.flatten(L2_distance, start_dim=1), dim=1)).data
+            L2_distance = L2_distance * acc_sign
+            total_L2_distance += L2_distance.sum()
+            with torch.no_grad():
+                outputs = tar_net(adv_inputs_ori*max_pixel)
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted.to(device) == labels).sum()
+                att_sign = torch.where(predicted.to(device) == labels, ones, zeros)
+                att_sign = att_sign + acc_sign
+                att_sign = torch.where(att_sign == 2, ones, zeros)
+                att_num += att_sign.sum().float()
+
+
         else:
-            outputs = net(inputs)
-    nb_class = outputs.size(1)
-    _, predicted = torch.max(outputs.data, 1)
-    if target:
-        labels = torch.randint(0, nb_class, (inputs.size(0),)).to(torch.int64).to(device)
+            ones = torch.ones_like(predicted).to(device)
+            zeros = torch.zeros_like(predicted).to(device)
+            acc_sign = torch.where(predicted.to(device) == labels, ones, zeros)
+            acc_num += acc_sign.sum().float()
 
-        ones = torch.ones_like(predicted).to(device)
-        zeros = torch.zeros_like(predicted).to(device)
-        acc_sign = torch.where(predicted.to(device) == labels, zeros, ones)
-        acc_num += acc_sign.sum().float()
-        _, adv_inputs_ori, is_adv = attack_fb(fmodel, inputs, TargetedMisclassification(labels), epsilons=opt.eps)
-        L2_distance = (adv_inputs_ori - inputs).squeeze()
-        L2_distance = (torch.linalg.norm(torch.flatten(L2_distance, start_dim=1), dim=1)).data
-        L2_distance = L2_distance * acc_sign
-        total_L2_distance += L2_distance.sum()
-        with torch.no_grad():
-            outputs = tar_net(adv_inputs_ori*max_pixel)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted.to(device) == labels).sum()
-            att_sign = torch.where(predicted.to(device) == labels, ones, zeros)
-            att_sign = att_sign + acc_sign
-            att_sign = torch.where(att_sign == 2, ones, zeros)
-            att_num += att_sign.sum().float()
-
-
-    else:
-        ones = torch.ones_like(predicted).to(device)
-        zeros = torch.zeros_like(predicted).to(device)
-        acc_sign = torch.where(predicted.to(device) == labels, ones, zeros)
-        acc_num += acc_sign.sum().float()
-
-        _, adv_inputs_ori, _ = attack_fb(fmodel, inputs, Misclassification(labels), epsilons=opt.eps)
-        L2_distance = (adv_inputs_ori.to(device) - inputs).squeeze()
-        L2_distance = (torch.linalg.norm(torch.flatten(L2_distance, start_dim=1), dim=1)).data
-        L2_distance = L2_distance * acc_sign
-        total_L2_distance += L2_distance.sum()
-        with torch.no_grad():
-            outputs = tar_net(adv_inputs_ori*max_pixel)
-            # outputs = attack_net(adv_inputs_ori)
-            _, predicted = torch.max(outputs, 1)
-            total += labels.size(0)
-            correct += (predicted.to(device) == labels).sum()
-            att_sign = torch.where(predicted.to(device) == labels, zeros, ones)
-            att_sign = att_sign + acc_sign
-            att_sign = torch.where(att_sign == 2, ones, zeros)
-            att_num += att_sign.sum().float()
+            _, adv_inputs_ori, _ = attack_fb(fmodel, inputs, Misclassification(labels), epsilons=opt.eps)
+            L2_distance = (adv_inputs_ori.to(device) - inputs).squeeze()
+            L2_distance = (torch.linalg.norm(torch.flatten(L2_distance, start_dim=1), dim=1)).data
+            L2_distance = L2_distance * acc_sign
+            total_L2_distance += L2_distance.sum()
+            with torch.no_grad():
+                outputs = tar_net(adv_inputs_ori*max_pixel)
+                # outputs = attack_net(adv_inputs_ori)
+                _, predicted = torch.max(outputs, 1)
+                total += labels.size(0)
+                correct += (predicted.to(device) == labels).sum()
+                att_sign = torch.where(predicted.to(device) == labels, zeros, ones)
+                att_sign = att_sign + acc_sign
+                att_sign = torch.where(att_sign == 2, ones, zeros)
+                att_num += att_sign.sum().float()
 
     if target:
         print('Targeted attack success rate: %.2f %%' %

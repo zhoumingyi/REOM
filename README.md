@@ -95,7 +95,7 @@ bash DatasetDownload.sh
 unzip -o dataset.zip
 ```
 
-Then, do the step (2) to get the results.
+Then, do step (2) or the next section to get the results.
 
 ## To Test the REOM-based attack on your own model
 

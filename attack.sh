@@ -15,8 +15,8 @@ python attack.py  --adv=BIM --model=fruit --eps=0.01 --nb_iter=600 --eps_iter=0.
 python attack.py  --adv=PGD --model=fruit --eps=0.01 --nb_iter=600 --eps_iter=0.0005 --target | tee -a acc_asr.txt
 python attack.py  --adv=BIM --model=fruit --eps=0.1 --nb_iter=600 --eps_iter=0.001 --target | tee -a acc_asr.txt
 python attack.py  --adv=PGD --model=fruit --eps=0.1 --nb_iter=600 --eps_iter=0.001 --target | tee -a acc_asr.txt
-python attack.py  --adv=BIM --model=fruit --eps=1.0 --nb_iter=600 --eps_iter=0.06 --target | tee -a acc_asr.txt
-python attack.py  --adv=PGD --model=fruit --eps=1.0 --nb_iter=600 --eps_iter=0.06 --target | tee -a acc_asr.txt
+python attack.py  --adv=BIM --model=fruit --eps=1.0 --nb_iter=600 --eps_iter=0.07 --target | tee -a acc_asr.txt
+python attack.py  --adv=PGD --model=fruit --eps=1.0 --nb_iter=600 --eps_iter=0.07 --target | tee -a acc_asr.txt
 
 
 echo "************************************************************" | tee -a acc_asr.txt

@@ -75,8 +75,8 @@ python attack.py  --adv=BIM --model=american_sign_language --eps=0.01 --nb_iter=
 python attack.py  --adv=PGD --model=american_sign_language --eps=0.01 --nb_iter=400 --eps_iter=0.0001 --target | tee -a acc_asr.txt
 python attack.py  --adv=BIM --model=american_sign_language --eps=0.1 --nb_iter=400 --eps_iter=0.002 --target | tee -a acc_asr.txt
 python attack.py  --adv=PGD --model=american_sign_language --eps=0.1 --nb_iter=400 --eps_iter=0.002 --target | tee -a acc_asr.txt
-python attack.py  --adv=BIM --model=american_sign_language --eps=1.0 --nb_iter=600 --eps_iter=0.08 --target | tee -a acc_asr.txt
-python attack.py  --adv=PGD --model=american_sign_language --eps=1.0 --nb_iter=600 --eps_iter=0.08 --target | tee -a acc_asr.txt
+python attack.py  --adv=BIM --model=american_sign_language --eps=1.0 --nb_iter=600 --eps_iter=0.09 --target | tee -a acc_asr.txt
+python attack.py  --adv=PGD --model=american_sign_language --eps=1.0 --nb_iter=600 --eps_iter=0.09 --target | tee -a acc_asr.txt
 
 
 echo "************************************************************" | tee -a acc_asr.txt

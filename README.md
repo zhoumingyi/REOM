@@ -41,7 +41,8 @@ conda activate reom
 docker pull zhoumingyigege/reom:latest
 ```
 
-(Option 2) If you have issues using Docker Hub, you can download the image using OneDrive (https://monashuni-my.sharepoint.com/:u:/g/personal/mingyi_zhou_monash_edu/ETXADXx-j6hDkmuuefPezn4BrJvmNFRd0c1HCU9ywXF70A?e=penUga) or our shell script:
+
+(Option 2) If you have issues using Docker Hub, you can download the image using OneDrive (https://monashuni-my.sharepoint.com/:u:/g/personal/mingyi_zhou_monash_edu/ESpHQedbB2RAt7l-hydtIeIBlIdtsIJf2pF2GF4p2lH73Q?e=E18ogS) or our shell script:
 
 ```
 bash ImageDownload.sh

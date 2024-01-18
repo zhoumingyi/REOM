@@ -41,8 +41,7 @@ conda activate reom
 docker pull zhoumingyigege/reom:latest
 ```
 
-
-(Option 2) If you have issues using Docker Hub, you can download the image using OneDrive (https://monashuni-my.sharepoint.com/:u:/g/personal/mingyi_zhou_monash_edu/ESpHQedbB2RAt7l-hydtIeIBlIdtsIJf2pF2GF4p2lH73Q?e=E18ogS) or our shell script:
+(Option 2) If you have issues using Docker Hub, you can download the image using OneDrive (https://monashuni-my.sharepoint.com/:u:/g/personal/mingyi_zhou_monash_edu/EXtA2ztRd2ZMoN9qLloOFhIB6yi3DRxagVmT0scTM66NGg?e=ixSoBy) or our shell script:
 
 ```
 bash ImageDownload.sh
@@ -53,7 +52,6 @@ Then, load the Docker image:
 ```
 docker load -i reom.tar
 ```
-
 
 
 (2) Then, enter the environment:

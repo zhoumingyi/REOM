@@ -41,11 +41,7 @@ conda activate reom
 docker pull zhoumingyigege/reom:latest
 ```
 
-(Option 2) If you have issues using Docker Hub, you can download the image using OneDrive (https://monashuni-my.sharepoint.com/:u:/g/personal/mingyi_zhou_monash_edu/EXtA2ztRd2ZMoN9qLloOFhIB6yi3DRxagVmT0scTM66NGg?e=ixSoBy) or our shell script:
-
-```
-bash ImageDownload.sh
-```
+(Option 2) If you have issues using Docker Hub, you can download the image using OneDrive (https://monashuni-my.sharepoint.com/:u:/g/personal/mingyi_zhou_monash_edu/EXtA2ztRd2ZMoN9qLloOFhIB6yi3DRxagVmT0scTM66NGg?e=ixSoBy)
 
 Then, load the Docker image:
 
@@ -87,10 +83,11 @@ bash attack.sh
 
 It will log the accuracy and attack success rate in the 'acc_asr.txt' file. The results should be similar to Table 5 and Table 6 of our paper. However, it is acceptable when the results have a small difference from the original results because we only provide 64 samples to test our method in our code repository (the original datasets contain hundreds of GB data). The sampled data can be found in the 'dataset/'. We also provide a list (https://github.com/zhoumingyi/reom/blob/main/dataset_list.txt) that contains the link to complete datasets.
 
-**(Optional)** If you want to get more accurate results, we also provide 640 samples to test our method. You can download the datasets and unpack the file: 
+**(Optional)** To get accurate results, we provide 640 samples to test our method. You can download the datasets by OneDrive (https://monashuni-my.sharepoint.com/:u:/g/personal/mingyi_zhou_monash_edu/EVtPH6SeDNlJnXTUFFGJNBQBmskq_2uag0DGUy_8B_876w?e=BuKG7X), store the .zip in the project directory, and unzip the file to replace the original test set.
+
 
 ```
-bash DatasetDownload.sh
+rm -rf ./dataset
 unzip -o dataset.zip
 ```
 
